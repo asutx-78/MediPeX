@@ -16,8 +16,8 @@
 
 <div align="center">
   <h2>📥 Download Latest Release</h2>
-  <a href="https://github.com/asutx-78/MediaPeX/releases/latest/download/MediPeX.exe">
-    <img src="https://img.shields.io/badge/Download-MediPeX.exe-00e5ff?style=for-the-badge&logo=windows&logoColor=white" alt="Download MediPeX" />
+  <a href="https://github.com/asutx-78/MediaPeX/releases/latest/download/MediPeX-v1.0-zipped.zip">
+    <img src="https://img.shields.io/badge/Download-MediPeX--v1.0--zipped.zip-00e5ff?style=for-the-badge&logo=windows&logoColor=white" alt="Download MediPeX" />
   </a>
   <p><em>(Compatible with Windows 10 & 11)</em></p>
 </div>
