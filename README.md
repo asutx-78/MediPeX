@@ -1,21 +1,41 @@
-# MediPeX
+<div align="center">
+  <img src="build/appicon.png" alt="MediPeX Icon" width="128" />
+  <h1>MediPeX v1.0</h1>
+  
+  <p><strong>A powerful, modern, standalone desktop media suite built with Wails and Go.</strong></p>
+  
+  <p>
+    <a href="https://github.com/asutx-78"><img src="https://img.shields.io/badge/Author-asutx--78-blue?style=flat-square" alt="Author" /></a>
+    <a href="https://wails.io"><img src="https://img.shields.io/badge/Powered%20By-Wails-red?style=flat-square" alt="Wails" /></a>
+    <a href="https://golang.org"><img src="https://img.shields.io/badge/Backend-Go-00ADD8?style=flat-square" alt="Go" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" /></a>
+  </p>
+</div>
 
-**Version:** 0.1.1
-**Author:** [@asutx-78](https://github.com/asutx-78)
+---
 
-MediPeX is a powerful, modern, standalone desktop media suite built with [Wails](https://wails.io/) and Go. It combines the functionality of local media players like VLC with seamless, ad-free YouTube streaming and downloading capabilities via Invidious proxy integration.
+MediPeX unifies local media playback (like VLC) with seamless, ad-free YouTube streaming inside a single, beautifully designed application. Say goodbye to bloated web browsers and slow electron apps.
 
-## 🚀 Features
+## ✨ Features
 
-- **Local & Online Media Playback:** Play offline files (mp4, mkv, mp3, flac, etc.) alongside YouTube videos in one unified player.
-- **Advanced Volume Booster:** Bypass system volume limits with a built-in Web Audio API GainNode, boosting audio up to 300%.
-- **VLC-Style Custom Controls:** Complete with A-B repeat looping, playback speed control, and precision seek bars.
-- **YouTube Integration & Downloads:** Search, stream, and download YouTube videos directly. Extract full 1080p+, 4K, or pure audio formats directly from YouTube's servers.
-- **Web Audio Equalizer:** Built-in 5-band EQ with presets (Flat, Bass Booster, Acoustic, Electronic, etc.) to customize your local listening experience.
-- **Robust Playlist Engine:** Create, reorder, shuffle, and repeat custom playlists. Save playlists directly to your device and recall them instantly.
-- **Keyboard Shortcuts:** Full control over your media without reaching for the mouse.
+- **Hybrid Media Playback**: Play offline media (`.mp4`, `.mkv`, `.mp3`) alongside direct YouTube streams in one unified queue.
+- **Gorgeous Theme Engine**: Choose from multiple pre-built themes, including **Dark**, **Goth**, and a stunning premium **Glassmorphism** UI.
+- **Robust Playlist Management**: Create, reorder, shuffle, and save custom playlists natively to your machine.
+- **Zero-Latency YouTube Integration**: Built on an embedded, highly-optimized YouTube framework immune to standard API rate limits.
+- **Lightning Fast & Lightweight**: Powered by Go and Wails (using native OS WebViews), resulting in a tiny memory footprint compared to Electron.
+- **Advanced Custom Controls**: Features precision seek bars, playback speed toggling (0.5x to 2.0x), and A-B loop repeating.
+
+## 🎨 Themes
+
+MediPeX includes a dynamic CSS variables engine supporting multiple visual modes:
+* **Default (VLC)** - The classic, high-contrast orange and black.
+* **Dark** - A sleek, minimal midnight theme.
+* **Goth** - Deep crimson and abyss black.
+* **Glass** - A premium, frosted-glass translucent UI with a dynamic ocean gradient.
 
 ## ⌨️ Keyboard Shortcuts
+
+Never reach for your mouse again.
 
 | Shortcut | Action |
 |----------|--------|
@@ -24,27 +44,27 @@ MediPeX is a powerful, modern, standalone desktop media suite built with [Wails]
 | `Shift + Arrow Left/Right` | Play Previous / Next media in playlist |
 | `Arrow Up` / `Down` | Volume Up / Down (5%) |
 | `Shift + >` / `<` | Increase / Decrease playback speed |
-| `Shift + V` | Reset volume to safe default (75%) |
 
-## 🛠️ Development
-
-MediPeX is built using Go on the backend and raw HTML/CSS/JS on the frontend for lightning-fast performance and a tiny memory footprint.
+## 🛠️ Installation & Development
 
 ### Prerequisites
-- Go 1.20+
-- Node.js & npm (for frontend dependencies)
-- Wails CLI
+- [Go 1.20+](https://golang.org/doc/install)
+- [Node.js & npm](https://nodejs.org/)
+- [Wails CLI](https://wails.io/docs/gettingstarted/installation)
 
 ### Running Locally
+To launch the app in live-reloading development mode:
 ```bash
 wails dev
 ```
 
-### Building for Release
+### Compiling for Release
+To build the standalone `.exe` (or macOS/Linux equivalent):
 ```bash
 wails build
 ```
+The compiled executable will be located in `build/bin/MediPeX.exe`.
 
 ## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is open-source and licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

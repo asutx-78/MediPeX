@@ -25,6 +25,22 @@ The very first public prototype release of MediPeX. Designed to prove the core c
 - **Right-Click Context Menu:** Added to playlist items to copy links, create new saved playlists, and append to existing ones.
 - **Keyboard Shortcuts Engine:** Space to play/pause, Arrow keys for seeking/volume, Shift+Arrows for playlist navigation, and Shift+</> for speed control.
 
-**Known Limitations & Future Roadmap (v1.0):**
-- UI/UX is currently functional but basic (Prototype Phase). The upcoming 1.0 release will feature a massive visual overhaul with rich modern aesthetics, animations, and glassmorphism.
+**Known Limitations & Future Roadmap:**
 - Saved playlists are currently stored locally; future versions may feature advanced export/import.
+
+---
+
+## [v1.0] - The Aesthetics & Stability Update (2026-10-03)
+
+**Overview:**
+The official 1.0 release focuses on delivering a premium, flawless user experience by overhauling the visual design and aggressively cutting unstable features to guarantee reliability.
+
+**Core Architectural Changes:**
+- **Removal of Volume Booster & Equalizer:** In pursuit of 100% stability, the Web Audio API Equalizer and Volume Booster were permanently removed. Desktop OS restrictions prevented system-wide audio boosting without kernel drivers, and Google's IP-locking mechanisms blocked cross-origin YouTube stream processing.
+- **YouTube Playback Lockdown:** Reverted permanently to the indestructible YouTube `<iframe>` embed. Playback is now zero-latency and 100% immune to API rate limits. 
+- **App Metadata:** Official `MediPeX.exe` build now includes a custom designed app icon, proper window titles, and production configuration.
+
+**Visual Overhaul (Themes Engine):**
+- Introduced a dynamic CSS variables theme engine.
+- Added **Default (VLC)**, **Dark**, and **Goth** themes.
+- **Glassmorphism Theme:** A flagship visual upgrade featuring a deep ocean gradient backdrop with `backdrop-filter: blur(15px)` translucent frosted glass panels for an ultra-premium aesthetic.
