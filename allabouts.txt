@@ -1,0 +1,43 @@
+# MediPeX - Release History & Changelog
+
+## [0.1.1] - 2026-10-03 - Initial Prototype Release
+**Status:** Stable Prototype
+**Codename:** "The Foundation"
+
+### Overview
+This is the foundational release of MediPeX. It establishes the core engine capable of handling both local offline media and seamless YouTube playback through a proxy API. The goal of this release was to build out heavy-duty functionality before moving into the v1.0 visual and aesthetic overhaul. 
+
+### Key Features Implemented:
+1. **Hybrid Media Engine:** 
+   - Unified interface for `.mp4`, `.mkv`, `.mp3` and direct YouTube video links.
+   - Intelligent URL parsing utilizing robust Regular Expressions to isolate YouTube Video IDs.
+
+2. **Web Audio API Integration:**
+   - **5-Band Equalizer:** Real-time Biquad filters acting on local media with presets (Flat, Bass Booster, Acoustic, etc.).
+   - **GainNode Volume Booster (300%):** Bypasses hardware limits to amplify audio signal up to 3x standard maximum output, complete with a dedicated safety "Boost 🚀" toggle.
+
+3. **Advanced Playback Controls (VLC-Style):**
+   - Precise Seek Bar and continuous time tracking.
+   - Variable Playback Speeds (0.5x, 1.0x, 1.25x, 1.5x, 2.0x).
+   - **A-B Repeat:** Custom looping system to infinitely replay a specific segment of a video/song.
+   - Integrated YouTube IFrame API telemetry for synchronous playback control.
+
+4. **Dynamic Playlist System:**
+   - Add local files or YouTube videos dynamically.
+   - Reorder queue items using a custom sequential input system.
+   - Right-Click Context Menu for playlist items:
+     - Copy source URL to clipboard.
+     - Add specific items to persistent saved playlists.
+     - Create new persistent playlists from a single item.
+   - Global Shuffle and Repeat modes governing the playlist sequence.
+
+5. **Comprehensive Keyboard Shortcuts:**
+   - Global keystroke listeners mapped to critical functions (`Space` for play/pause, Arrow keys for seeking/volume, `Shift`-modifiers for speed/next/prev).
+
+### Technical Notes
+- Built using Wails and Go backend.
+- Pure vanilla JS, CSS, and HTML on the frontend to minimize overhead and maximize speed.
+- Invidious proxy integration to securely fetch YouTube metadata and formats.
+
+---
+*(Future releases will be appended below)*
