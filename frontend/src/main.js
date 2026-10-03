@@ -440,7 +440,7 @@ function showModal(title, content) {
 }
 
 document.getElementById('btn-about').onclick = () => showModal("About Us", "<p>MedPex is an advanced local and online media player featuring custom Equalizer settings, playlist management, and Invidious YouTube streaming.</p><p>Built with Wails & Go.</p>");
-document.getElementById('btn-reach').onclick = () => showModal("Reach Us", "<p>Email: contact@medpex.example.com</p><p>GitHub: github.com/user/med_pex</p>");
+document.getElementById('btn-reach').onclick = () => showModal("Reach Us", "<p>Email: contact@medpex.example.com</p><p>GitHub: github.com/asutx-78/MediPeX</p>");
 document.getElementById('btn-info').onclick = () => showModal("How to use", "<ul><li style='margin-bottom:10px;'><b>Local Files:</b> Click 'Add +' or 'Open Local File' to play offline media.</li><li style='margin-bottom:10px;'><b>YouTube:</b> Paste a link into the search bar or use 'Add +'.</li><li style='margin-bottom:10px;'><b>Playlist:</b> Change Sl.No inputs and click 'Refresh Order' to reorder.</li><li style='margin-bottom:10px;'><b>Equalizer:</b> Toggle on for local offline media processing!</li></ul>");
 document.getElementById('btn-license').onclick = () => showModal("License", "<p>MIT License</p><p>Copyright (c) 2026</p><p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software...</p>");
 document.getElementById('btn-settings').onclick = () => showModal("Settings", "<p>Settings functionality coming soon.</p>");
