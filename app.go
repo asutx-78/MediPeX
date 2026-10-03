@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/kkdai/youtube/v2"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -82,4 +83,31 @@ func (a *App) DownloadFile(url string, suggestedFilename string) (string, error)
 	}
 
 	return savePath, nil
+}
+
+// GetYouTubeStream uses the Go backend to extract the direct URL of a YouTube video
+// Since it runs locally, the URL signature will match the user's IP address!
+func (a *App) GetYouTubeStream(videoId string) (string, error) {
+	client := youtube.Client{}
+	video, err := client.GetVideo(videoId)
+	if err != nil {
+		return "", err
+	}
+	
+	// Find the best mp4 format with audio and video (muxed)
+	formats := video.Formats.WithAudioChannels().Type("mp4")
+	if len(formats) == 0 {
+		return "", fmt.Errorf("no suitable mp4 format found")
+	}
+	
+	// Sort by quality
+	formats.Sort()
+	bestFormat := formats[0]
+	
+	url, err := client.GetStreamURL(video, &bestFormat)
+	if err != nil {
+		return "", err
+	}
+	
+	return url, nil
 }

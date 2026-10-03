@@ -6,6 +6,10 @@ export function DownloadFile(arg1, arg2) {
   return window['go']['main']['App']['DownloadFile'](arg1, arg2);
 }
 
+export function GetYouTubeStream(arg1) {
+  return window['go']['main']['App']['GetYouTubeStream'](arg1);
+}
+
 export function OpenFile() {
   return window['go']['main']['App']['OpenFile']();
 }

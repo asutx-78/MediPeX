@@ -1,43 +1,30 @@
 # MediPeX - Release History & Changelog
 
-## [0.1.1] - 2026-10-03 - Initial Prototype Release
-**Status:** Stable Prototype
-**Codename:** "The Foundation"
-
-### Overview
-This is the foundational release of MediPeX. It establishes the core engine capable of handling both local offline media and seamless YouTube playback through a proxy API. The goal of this release was to build out heavy-duty functionality before moving into the v1.0 visual and aesthetic overhaul. 
-
-### Key Features Implemented:
-1. **Hybrid Media Engine:** 
-   - Unified interface for `.mp4`, `.mkv`, `.mp3` and direct YouTube video links.
-   - Intelligent URL parsing utilizing robust Regular Expressions to isolate YouTube Video IDs.
-
-2. **Web Audio API Integration:**
-   - **5-Band Equalizer:** Real-time Biquad filters acting on local media with presets (Flat, Bass Booster, Acoustic, etc.).
-   - **GainNode Volume Booster (300%):** Bypasses hardware limits to amplify audio signal up to 3x standard maximum output, complete with a dedicated safety "Boost 🚀" toggle.
-
-3. **Advanced Playback Controls (VLC-Style):**
-   - Precise Seek Bar and continuous time tracking.
-   - Variable Playback Speeds (0.5x, 1.0x, 1.25x, 1.5x, 2.0x).
-   - **A-B Repeat:** Custom looping system to infinitely replay a specific segment of a video/song.
-   - Integrated YouTube IFrame API telemetry for synchronous playback control.
-
-4. **Dynamic Playlist System:**
-   - Add local files or YouTube videos dynamically.
-   - Reorder queue items using a custom sequential input system.
-   - Right-Click Context Menu for playlist items:
-     - Copy source URL to clipboard.
-     - Add specific items to persistent saved playlists.
-     - Create new persistent playlists from a single item.
-   - Global Shuffle and Repeat modes governing the playlist sequence.
-
-5. **Comprehensive Keyboard Shortcuts:**
-   - Global keystroke listeners mapped to critical functions (`Space` for play/pause, Arrow keys for seeking/volume, `Shift`-modifiers for speed/next/prev).
-
-### Technical Notes
-- Built using Wails and Go backend.
-- Pure vanilla JS, CSS, and HTML on the frontend to minimize overhead and maximize speed.
-- Invidious proxy integration to securely fetch YouTube metadata and formats.
+This document serves as a detailed historical record of all releases, features, and architectural updates for MediPeX.
 
 ---
-*(Future releases will be appended below)*
+
+## [v0.1.1] - Prototype Initial Release (2026-10-03)
+
+**Overview:**
+The very first public prototype release of MediPeX. Designed to prove the core concept of unifying local media and YouTube streaming into a single, seamless desktop application. Built on Go and Wails.
+
+**Core Architecture & Tech Stack:**
+- **Backend:** Go 1.20+ with Wails v2 framework for native OS integration and local file streaming.
+- **Frontend:** Vanilla JavaScript, HTML5, and standard CSS variables (VLC-inspired theme).
+- **Audio Processing:** Native Web Audio API (`AudioContext`, `BiquadFilterNode`, `GainNode`).
+- **YouTube Engine:** Invidious API proxying (bypassing CORS) to extract raw `googlevideo.com` CDN streams and formats. YouTube IFrame API integration for synced playback controls.
+
+**Key Features Implemented:**
+- **Hybrid Playback:** Support for both local video/audio files (via Wails custom asset server) and direct YouTube URLs.
+- **Advanced 5-Band Equalizer:** Real-time Web Audio API equalizer processing for local files with multiple built-in presets (Flat, Bass Booster, Acoustic, Electronic, Pop, etc.).
+- **300% Volume Booster:** A dedicated GainNode booster that amplifies system volume up to 3x with a safety confirmation prompt.
+- **YouTube Format Extractor:** Downloads raw YouTube streams (1080p, 4K, Audio-only) directly without proxy bottlenecks.
+- **Custom Playback Controls:** Fully custom UI overriding standard HTML5 video controls, featuring A-B Repeat mode for looping specific segments, playback speed cycles (0.5x to 2.0x), and interactive seeking.
+- **Playlist Management:** Editable, re-orderable tabular playlist. 
+- **Right-Click Context Menu:** Added to playlist items to copy links, create new saved playlists, and append to existing ones.
+- **Keyboard Shortcuts Engine:** Space to play/pause, Arrow keys for seeking/volume, Shift+Arrows for playlist navigation, and Shift+</> for speed control.
+
+**Known Limitations & Future Roadmap (v1.0):**
+- UI/UX is currently functional but basic (Prototype Phase). The upcoming 1.0 release will feature a massive visual overhaul with rich modern aesthetics, animations, and glassmorphism.
+- Saved playlists are currently stored locally; future versions may feature advanced export/import.

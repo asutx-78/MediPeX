@@ -92,7 +92,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "MediPeX 0.1.1",
+		Title:  "MediPeX v1.0",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{

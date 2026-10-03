@@ -12,105 +12,6 @@ window.setTheme = function(themeName) {
     document.body.setAttribute('data-theme', themeName);
 }
 
-// --- WEB AUDIO API EQUALIZER ---
-let audioCtx;
-let mediaSource;
-let masterGain;
-const filters = [];
-let isEqOn = document.getElementById('eq-toggle').checked;
-let eqLastNode = null;
-
-const eqPresets = {
-    'flat': [0, 0, 0, 0, 0],
-    'large-hall': [5, 3, 0, -2, -5],
-    'small-room': [2, 0, 0, 1, 3],
-    'acoustic': [4, 2, 1, 3, 3],
-    'bass-booster': [6, 4, 1, 0, 0],
-    'electronic': [4, 1, -2, 2, 4],
-    'pop': [-2, 0, 3, 2, -1]
-};
-
-function initAudioEq() {
-    if (audioCtx) return; // Already initialized
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    masterGain = audioCtx.createGain();
-    
-    // Create MediaElementSource
-    mediaSource = audioCtx.createMediaElementSource(videoPlayer);
-    
-    // Create filters based on the UI
-    const sliders = document.querySelectorAll('.eq-slider');
-    let prevNode = mediaSource;
-
-    sliders.forEach(slider => {
-        const freq = parseFloat(slider.getAttribute('data-freq'));
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'peaking';
-        filter.frequency.value = freq;
-        filter.Q.value = 1.0;
-        filter.gain.value = parseFloat(slider.value);
-        
-        // Connect to previous node
-        prevNode.connect(filter);
-        prevNode = filter;
-        filters.push({ slider, filter });
-
-        // Update on change
-        slider.addEventListener('input', (e) => {
-            if (isEqOn) {
-                filter.gain.value = parseFloat(e.target.value);
-            }
-        });
-    });
-
-    eqLastNode = prevNode;
-    updateEqRouting();
-}
-
-function updateEqRouting() {
-    if (!audioCtx) return;
-    
-    // Disconnect everything first
-    try { mediaSource.disconnect(); } catch (e) {}
-    try { eqLastNode.disconnect(); } catch (e) {}
-    try { masterGain.disconnect(); } catch (e) {}
-    
-    if (isEqOn) {
-        mediaSource.connect(filters[0].filter);
-        eqLastNode.connect(masterGain);
-        masterGain.connect(audioCtx.destination);
-        // Restore slider values to filters
-        filters.forEach(f => f.filter.gain.value = parseFloat(f.slider.value));
-    } else {
-        mediaSource.connect(masterGain);
-        masterGain.connect(audioCtx.destination);
-        // Visuals stay the same, but actual gain is effectively bypassed
-    }
-}
-
-document.getElementById('eq-toggle').addEventListener('change', (e) => {
-    isEqOn = e.target.checked;
-    updateEqRouting();
-});
-
-document.getElementById('eq-presets').addEventListener('change', (e) => {
-    const preset = eqPresets[e.target.value];
-    if (preset && filters.length === preset.length) {
-        filters.forEach((f, i) => {
-            f.slider.value = preset[i];
-            if (isEqOn) {
-                f.filter.gain.value = preset[i];
-            }
-        });
-    }
-});
-// Ensure AudioContext is resumed upon user interaction
-videoPlayer.addEventListener('play', () => {
-    initAudioEq();
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
-});
 
 // --- LOCAL FILE PLAYBACK ---
 // (Moved to the add+ button below, but we'll keep this old button working just in case)
@@ -137,12 +38,11 @@ function playMedia(url, title) {
     document.getElementById('yt-download-controls').style.display = 'none';
 }
 
-function playYtMedia(videoId, title, formats = null) {
+function playYtMedia(videoId, title, instance = 'https://invidious.f5.si') {
     videoPlayer.style.display = 'none';
     videoPlayer.pause();
     ytIframe.style.display = 'block';
     
-    // Use YouTube's official embed player with JS API enabled!
     ytIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1`;
     isYtPlaying = true;
     document.getElementById('btn-playpause').textContent = '⏸';
@@ -151,10 +51,30 @@ function playYtMedia(videoId, title, formats = null) {
     dlControls.style.display = 'flex';
     
     const formatSelect = document.getElementById('download-format-select');
-    formatSelect.innerHTML = '';
+    formatSelect.innerHTML = '<option>Loading formats...</option>';
     
-    // Filter formats to remove pure duplicates and pick best combinations
-    if (formats && formats.length > 0) {
+    // Concurrently fetch Invidious for download formats
+    const promises = INVIDIOUS_INSTANCES.map(async (inst) => {
+        const videoUrl = `${inst}/api/v1/videos/${videoId}`;
+        const proxyUrl = '/proxy?url=' + encodeURIComponent(videoUrl);
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error("Failed");
+        return response.json();
+    });
+    
+    Promise.any(promises).then(data => {
+        const formats = [];
+        if (data.formatStreams) formats.push(...data.formatStreams);
+        if (data.adaptiveFormats) formats.push(...data.adaptiveFormats);
+        
+        formats.sort((a, b) => {
+             let resA = parseInt(a.qualityLabel) || 0;
+             let resB = parseInt(b.qualityLabel) || 0;
+             return resB - resA;
+        });
+        
+        formatSelect.innerHTML = '';
+        if (formats.length === 0) throw new Error("No formats");
         formats.forEach(f => {
             if (!f.url) return;
             const opt = document.createElement('option');
@@ -165,14 +85,14 @@ function playYtMedia(videoId, title, formats = null) {
             opt.dataset.ext = f.container || 'mp4';
             formatSelect.appendChild(opt);
         });
-    } else {
-        // Fallback options
+    }).catch(err => {
+        console.error(err);
         formatSelect.innerHTML = `
             <option value="https://invidious.f5.si/latest_version?id=${videoId}&itag=22&local=true" data-ext="mp4">720p (HD Video)</option>
             <option value="https://invidious.f5.si/latest_version?id=${videoId}&itag=18&local=true" data-ext="mp4">360p (SD Video)</option>
             <option value="https://invidious.f5.si/latest_version?id=${videoId}&itag=140&local=true" data-ext="m4a">Audio Only (M4A)</option>
         `;
-    }
+    });
     
     document.getElementById('btn-download-yt').onclick = async () => {
         const selectedOpt = formatSelect.options[formatSelect.selectedIndex];
@@ -220,7 +140,7 @@ function renderPlaylist() {
             </td>
             <td style="text-align:center;">${thumbHtml}</td>
             <td>${item.source}</td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.title}</td>
+            <td title="${item.title.replace(/"/g, '&quot;')}">${item.title}</td>
             <td>${item.time}</td>
             <td style="text-align:center;" onclick="event.stopPropagation()">
                 <button class="menu-btn" style="padding: 2px 6px; font-size: 0.8rem; background: var(--panel-bg); color: #ff4444; border: 1px solid var(--border-color); border-radius: 4px;" data-del="${index}">❌</button>
@@ -259,11 +179,15 @@ function playItemAtIndex(idx) {
     currentPlayIndex = idx;
     const item = playlistData[idx];
     if (item.source === 'YouTube') {
-        playYtMedia(item.ytVideoId, item.title, null);
+        fetchYtDetails(item.ytVideoId, false); // Fetch fastest instance and play without duplicating playlist
     } else {
         playMedia(item.url, item.title);
     }
 }
+
+document.getElementById('btn-show-current').addEventListener('click', () => {
+    renderPlaylist();
+});
 
 document.getElementById('btn-refresh-playlist').addEventListener('click', () => {
     const inputs = document.querySelectorAll('.sl-input');
@@ -391,47 +315,38 @@ const INVIDIOUS_INSTANCES = [
     'https://invidious.jing.rocks'
 ];
 
-async function fetchYtDetails(videoId) {
-    for (const instance of INVIDIOUS_INSTANCES) {
-        try {
-            const videoUrl = `${instance}/api/v1/videos/${videoId}`;
-            const proxyUrl = '/proxy?url=' + encodeURIComponent(videoUrl);
-            const response = await fetch(proxyUrl);
-            if (!response.ok) continue;
-            
-            const data = await response.json();
-            
-            const timeString = data.lengthSeconds ? new Date(data.lengthSeconds * 1000).toISOString().substring(11, 19).replace(/^00:/, '') : '-';
-            const thumbUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-            
-            // Extract ALL formats
-            const formats = [];
-            if (data.formatStreams) formats.push(...data.formatStreams);
-            if (data.adaptiveFormats) {
-                 formats.push(...data.adaptiveFormats);
-            }
-            
-            // Sort by quality
-            formats.sort((a, b) => {
-                 let resA = parseInt(a.qualityLabel) || 0;
-                 let resB = parseInt(b.qualityLabel) || 0;
-                 return resB - resA;
-            });
-            
+async function fetchYtDetails(videoId, addToQueue = true) {
+    const promises = INVIDIOUS_INSTANCES.map(async (instance) => {
+        const videoUrl = `${instance}/api/v1/videos/${videoId}`;
+        const proxyUrl = '/proxy?url=' + encodeURIComponent(videoUrl);
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error("Failed");
+        const data = await response.json();
+        return { data, instance };
+    });
+    
+    try {
+        const result = await Promise.any(promises);
+        const data = result.data;
+        const instance = result.instance;
+        const timeString = data.lengthSeconds ? new Date(data.lengthSeconds * 1000).toISOString().substring(11, 19).replace(/^00:/, '') : '-';
+        const thumbUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        
+        if (addToQueue) {
             addToPlaylist('YouTube', data.title, timeString, null, videoId, thumbUrl);
-            playYtMedia(videoId, data.title, formats);
-            return;
-        } catch (err) {
-            console.error(`Failed to fetch details from ${instance}:`, err);
         }
+        playYtMedia(videoId, data.title, instance);
+    } catch (err) {
+        console.error(`All instances failed to fetch details:`, err);
+        // Fallback
+        if (addToQueue) {
+            addToPlaylist('YouTube', "Pasted YouTube Video", "-", null, videoId, `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`);
+        }
+        playYtMedia(videoId, "Pasted YouTube Video");
     }
-    // Fallback if all instances fail to fetch details
-    addToPlaylist('YouTube', "Pasted YouTube Video", "-", null, videoId, `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`);
-    playYtMedia(videoId, "Pasted YouTube Video", null);
 }
 
 async function searchYouTube(query) {
-    // Check if query is a YouTube URL
     const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
     const match = query.match(regExp);
     if (match && match[2] && match[2].length === 11) {
@@ -439,45 +354,56 @@ async function searchYouTube(query) {
         return;
     }
 
-    playlistBody.innerHTML = '<tr><td colspan="5">Searching...</td></tr>';
+    playlistBody.innerHTML = '<tr><td colspan="5">Searching... (connecting to fastest server)</td></tr>';
     
-    for (const instance of INVIDIOUS_INSTANCES) {
-        try {
-            const searchUrl = `${instance}/api/v1/search?q=${encodeURIComponent(query)}&type=video`;
-            const proxySearchUrl = '/proxy?url=' + encodeURIComponent(searchUrl);
-            const response = await fetch(proxySearchUrl);
-            if (!response.ok) continue;
-            const data = await response.json();
+    const promises = INVIDIOUS_INSTANCES.map(async (instance) => {
+        const searchUrl = `${instance}/api/v1/search?q=${encodeURIComponent(query)}&type=video`;
+        const proxySearchUrl = '/proxy?url=' + encodeURIComponent(searchUrl);
+        const response = await fetch(proxySearchUrl);
+        if (!response.ok) throw new Error("Search failed");
+        return response.json();
+    });
+
+    try {
+        const data = await Promise.any(promises);
+        playlistBody.innerHTML = '';
+        data.forEach(video => {
+            const tr = document.createElement('tr');
+            tr.className = 'play-row';
             
-            playlistBody.innerHTML = '';
-            data.forEach(video => {
-                const tr = document.createElement('tr');
-                tr.className = 'play-row';
-                
-                const timeString = video.lengthSeconds ? new Date(video.lengthSeconds * 1000).toISOString().substring(11, 19).replace(/^00:/, '') : '-';
-                const thumbUrl = `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`;
-                const thumbHtml = `<img src="${thumbUrl}" style="width:50px; height:35px; object-fit:cover; border-radius:4px;">`;
-                
-                tr.innerHTML = `
-                    <td>+</td>
-                    <td style="text-align:center;">${thumbHtml}</td>
-                    <td>YouTube</td>
-                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${video.title}</td>
-                    <td>${timeString}</td>
-                    <td></td>
-                `;
-                
-                tr.addEventListener('click', () => {
-                    fetchYtDetails(video.videoId); // fetch details for formats and proper insertion
-                });
-                playlistBody.appendChild(tr);
+            const timeString = video.lengthSeconds ? new Date(video.lengthSeconds * 1000).toISOString().substring(11, 19).replace(/^00:/, '') : '-';
+            const thumbUrl = `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`;
+            const thumbHtml = `<img src="${thumbUrl}" style="width:50px; height:35px; object-fit:cover; border-radius:4px;">`;
+            
+            tr.innerHTML = `
+                <td class="add-to-list-btn" style="color:var(--accent-color); font-weight:bold; cursor:pointer;" title="Add to Playlist">➕</td>
+                <td style="text-align:center;">${thumbHtml}</td>
+                <td>YouTube</td>
+                <td title="${video.title.replace(/"/g, '&quot;')}">${video.title}</td>
+                <td>${timeString}</td>
+                <td></td>
+            `;
+            
+            tr.querySelector('.add-to-list-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const choice = confirm(`Add '${video.title}' to the Current Playlist Queue?\n(Click OK for Current Queue, or Cancel to open the Saved Playlists menu)`);
+                if (choice) {
+                    addToPlaylist('YouTube', video.title, timeString, null, video.videoId, thumbUrl);
+                    renderPlaylist();
+                } else {
+                    activeCtxItem = { source: 'YouTube', title: video.title, time: timeString, url: null, ytVideoId: video.videoId, thumbUrl: thumbUrl };
+                    document.getElementById('ctx-add-to-list').click();
+                }
             });
-            return; // Successfully loaded, exit loop
-        } catch (error) {
-            console.log(`Failed on ${instance}:`, error);
-        }
+            
+            tr.addEventListener('click', () => {
+                fetchYtDetails(video.videoId); 
+            });
+            playlistBody.appendChild(tr);
+        });
+    } catch (error) {
+        playlistBody.innerHTML = `<tr><td colspan="5">Error: All proxy servers timed out. Please try again.</td></tr>`;
     }
-    playlistBody.innerHTML = `<tr><td colspan="5">Error: All instances failed or rate limited</td></tr>`;
 }
 
 // (Legacy function, no longer needed as we use IFrame)
@@ -609,39 +535,14 @@ document.getElementById('btn-mute').onclick = (e) => {
     setVolume(videoPlayer.muted ? 1 : 0);
 };
 
-let isBoostEnabled = false;
-document.getElementById('btn-boost').onclick = (e) => {
-    if (!isBoostEnabled) {
-        if (confirm("Warning: Boosting volume above 100% can cause audio distortion and may damage your speakers or hearing. Proceed?")) {
-            isBoostEnabled = true;
-            volBar.max = 3;
-            e.target.style.color = "var(--accent-color)";
-        }
-    } else {
-        isBoostEnabled = false;
-        volBar.max = 1;
-        e.target.style.color = "";
-        if (parseFloat(volBar.value) > 1) {
-            setVolume(1);
-        }
-    }
-};
-
 volBar.addEventListener('input', () => {
     setVolume(parseFloat(volBar.value));
 });
 
 function setVolume(v) {
-    let maxVol = isBoostEnabled ? 3 : 1;
-    v = Math.max(0, Math.min(maxVol, v));
+    v = Math.max(0, Math.min(1, v));
     volBar.value = v;
-    if (v <= 1) {
-        videoPlayer.volume = v;
-        if (masterGain) masterGain.gain.value = 1;
-    } else {
-        videoPlayer.volume = 1;
-        if (masterGain) masterGain.gain.value = v;
-    }
+    videoPlayer.volume = v;
     videoPlayer.muted = (v === 0);
     document.getElementById('btn-mute').textContent = videoPlayer.muted ? '🔇' : '🔊';
     
@@ -665,18 +566,27 @@ function cycleSpeed(dir) {
 }
 
 btnABRepeat.onclick = () => {
+    const curTime = videoPlayer.style.display !== 'none' ? videoPlayer.currentTime : ytCurrentTime;
     if (abState === 0) {
-        abStart = videoPlayer.currentTime;
+        abStart = curTime;
         abState = 1;
-        btnABRepeat.textContent = 'A-';
-        btnABRepeat.style.color = 'var(--accent-color)';
+        btnABRepeat.textContent = 'A...';
+        btnABRepeat.style.color = '#3b82f6';
     } else if (abState === 1) {
-        abEnd = videoPlayer.currentTime;
-        abState = 2;
-        btnABRepeat.textContent = 'A-B';
+        abEnd = curTime;
+        if (abEnd > abStart) {
+            abState = 2;
+            btnABRepeat.textContent = 'A⇄B';
+            btnABRepeat.style.color = 'var(--accent-color)';
+        } else {
+            // Invalid point, reset
+            abStart = -1; abEnd = -1; abState = 0;
+            btnABRepeat.textContent = 'A⇄B';
+            btnABRepeat.style.color = '';
+        }
     } else {
         abStart = -1; abEnd = -1; abState = 0;
-        btnABRepeat.textContent = 'A-B';
+        btnABRepeat.textContent = 'A⇄B';
         btnABRepeat.style.color = '';
     }
 };
@@ -721,6 +631,11 @@ window.addEventListener('message', (e) => {
                  const ratio = ytCurrentTime / ytDuration;
                  if(!isNaN(ratio)) seekBar.value = ratio * 100 || 0;
                  timeDisplay.textContent = formatTime(ytCurrentTime) + " / " + formatTime(ytDuration);
+                 
+                 // YouTube AB Repeat
+                 if (abState === 2 && abEnd > 0 && ytCurrentTime >= abEnd) {
+                     ytIframe.contentWindow.postMessage(JSON.stringify({event: 'command', func: 'seekTo', args: [abStart, true]}), '*');
+                 }
             }
         }
     } catch(err) {}
@@ -733,6 +648,21 @@ seekBar.addEventListener('input', () => {
         const t = (seekBar.value / 100) * ytDuration;
         ytIframe.contentWindow.postMessage(JSON.stringify({event: 'command', func: 'seekTo', args: [t, true]}), '*');
     }
+});
+
+seekBar.addEventListener('mousemove', (e) => {
+    let dur = videoPlayer.style.display !== 'none' ? videoPlayer.duration : ytDuration;
+    if (!dur) return;
+    const rect = seekBar.getBoundingClientRect();
+    const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    seekBar.title = formatTime(pos * dur);
+});
+
+volBar.addEventListener('mousemove', (e) => {
+    const rect = volBar.getBoundingClientRect();
+    const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const maxVol = isBoostEnabled ? 5 : 1;
+    volBar.title = Math.round(pos * maxVol * 100) + '%';
 });
 
 window.addEventListener('keydown', (e) => {

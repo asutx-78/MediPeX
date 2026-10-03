@@ -3,27 +3,28 @@
 <head>
     <meta charset="UTF-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>med_pex</title>
+    <title>MediPeX v1.0</title>
     <link href="./src/style.css" rel="stylesheet">
 </head>
 <body data-theme="vlc">
     <header class="top-bar">
         <div class="top-menu">
-            <span class="logo-text" style="font-weight:bold; color:var(--accent-color); margin-right: 15px; font-size:1.2rem;">MediPeX 0.1.1</span>
+            <span class="logo-text" style="font-weight:bold; color:var(--accent-color); margin-right: 15px; font-size:1.2rem; text-shadow: 0 0 5px var(--accent-color);">MediPeX 1.0</span>
             <div class="dropdown">
                 <button class="menu-btn dropbtn">File</button>
                 <div class="dropdown-content">
-                    <a href="#" id="btn-open-local-menu">Open Local File...</a>
+                    <a href="#" id="btn-open-local-menu">Browse...</a>
                     <a href="#" id="btn-save-menu">Save Playlist</a>
                     <a href="#" id="btn-load-menu">Load Playlist</a>
                 </div>
             </div>
             <div class="dropdown">
-                <button class="menu-btn dropbtn">View (Themes)</button>
+                <button class="menu-btn dropbtn">Themes</button>
                 <div class="dropdown-content">
-                    <a href="#" onclick="window.setTheme('vlc')">VLC</a>
+                    <a href="#" onclick="window.setTheme('default')">Default (VLC)</a>
                     <a href="#" onclick="window.setTheme('dark')">Dark</a>
                     <a href="#" onclick="window.setTheme('goth')">Goth</a>
+                    <a href="#" onclick="window.setTheme('glass')">Glass</a>
                 </div>
             </div>
             <div class="dropdown">
@@ -52,7 +53,7 @@
             </div>
             
             <!-- Custom Player Controls -->
-            <div class="player-controls" style="display: flex; gap: 8px; align-items: center; padding: 10px; background: var(--panel-bg); border: 1px solid var(--border-color); margin-top: 10px; border-radius: 4px;">
+            <div class="player-controls" style="display: flex; gap: 8px; align-items: center; padding: 10px; background: var(--panel-bg); border: 1px solid var(--border-color); margin-top: 10px; border-radius: 4px; flex-wrap: wrap;">
                 <button class="menu-btn" id="btn-playpause" title="Play/Pause">⏯</button>
                 <button class="menu-btn" id="btn-stop" title="Stop">⏹</button>
                 <button class="menu-btn" id="btn-prev" title="Previous">⏮</button>
@@ -63,14 +64,13 @@
                 
                 <button class="menu-btn" id="btn-mute" title="Mute/Unmute">🔊</button>
                 <input type="range" id="vol-bar" min="0" max="1" step="0.05" value="1" title="Volume" style="width: 70px; cursor: pointer;">
-                <button class="menu-btn" id="btn-boost" title="Enable Volume Booster (300%)">🚀</button>
                 
                 <button class="menu-btn" id="btn-speed" title="Playback Speed">1.0x</button>
-                <button class="menu-btn" id="btn-ab-repeat" title="A-B Repeat">A-B</button>
+                <button class="menu-btn" id="btn-ab-repeat" title="A-B Repeat" style="font-weight:bold;">A⇄B</button>
             </div>
             
             <div class="controls" style="margin-top: 10px;">
-                <button id="btn-open-local">Open Local File</button>
+                <button id="btn-open-local">Browse...</button>
                 <div id="yt-download-controls" style="display: none; align-items: center; gap: 5px;">
                     <select id="download-format-select" style="padding: 6px; border-radius: 4px; background: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color);">
                         <!-- Dynamically populated -->
@@ -80,55 +80,13 @@
             </div>
         </section>
 
-        <!-- Equalizer Panel -->
-        <section class="panel eq-panel">
-            <div class="eq-header">
-                <h2>Equalizer</h2>
-                <div class="eq-controls">
-                    <label class="switch">
-                        <input type="checkbox" id="eq-toggle">
-                        <span class="slider round"></span>
-                    </label>
-                    <select id="eq-presets">
-                        <option value="flat">Flat / Default</option>
-                        <option value="large-hall">Large Hall</option>
-                        <option value="small-room">Small Room</option>
-                        <option value="acoustic">Acoustic</option>
-                        <option value="bass-booster">Bass Booster</option>
-                        <option value="electronic">Electronic</option>
-                        <option value="pop">Pop</option>
-                    </select>
-                </div>
-            </div>
-            <div class="eq-sliders">
-                <div class="slider-wrapper">
-                    <input type="range" min="-12" max="12" value="0" class="eq-slider" data-freq="60">
-                    <label>60Hz</label>
-                </div>
-                <div class="slider-wrapper">
-                    <input type="range" min="-12" max="12" value="0" class="eq-slider" data-freq="230">
-                    <label>230Hz</label>
-                </div>
-                <div class="slider-wrapper">
-                    <input type="range" min="-12" max="12" value="0" class="eq-slider" data-freq="910">
-                    <label>910Hz</label>
-                </div>
-                <div class="slider-wrapper">
-                    <input type="range" min="-12" max="12" value="0" class="eq-slider" data-freq="3600">
-                    <label>3.6kHz</label>
-                </div>
-                <div class="slider-wrapper">
-                    <input type="range" min="-12" max="12" value="0" class="eq-slider" data-freq="14000">
-                    <label>14kHz</label>
-                </div>
-            </div>
-        </section>
 
         <!-- Playlist / Search Results Panel -->
         <section class="panel playlist-panel">
             <div class="playlist-header">
                 <h2>Playlist</h2>
                 <div style="display: flex; gap: 5px;">
+                    <button id="btn-show-current" class="menu-btn" title="View Current Playlist Queue">📋</button>
                     <button id="btn-add-file" class="menu-btn" title="Add Media">➕</button>
                     <button id="btn-refresh-playlist" class="menu-btn" title="Refresh Order">🔄</button>
                     <button id="btn-shuffle" class="menu-btn" title="Shuffle Playlist">🔀</button>
@@ -140,12 +98,12 @@
                 <table id="playlist-table">
                     <thead>
                         <tr>
-                            <th style="width: 40px;">Sl.No</th>
-                            <th style="width: 50px;">Thumb</th>
-                            <th style="width: 70px;">Source</th>
-                            <th>Title</th>
-                            <th style="width: 70px;">Time</th>
-                            <th style="width: 40px;">Act</th>
+                            <th style="width: 8%;">#</th>
+                            <th style="width: 15%;">Thumb</th>
+                            <th style="width: 15%;">Src</th>
+                            <th style="width: 42%;">Title</th>
+                            <th style="width: 12%;">Time</th>
+                            <th style="width: 8%;">Act</th>
                         </tr>
                     </thead>
                     <tbody id="playlist-body">
